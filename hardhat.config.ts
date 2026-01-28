@@ -5,10 +5,14 @@ import * as dotenv from "dotenv";
 
 dotenv.config();
 
-const PRIVATE_KEY = process.env.PRIVATE_KEY || "0x0000000000000000000000000000000000000000000000000000000000000001";
+const PRIVATE_KEY = process.env.PRIVATE_KEY;
 const BASE_RPC_URL = process.env.BASE_RPC_URL || "https://mainnet.base.org";
 const BASE_SEPOLIA_RPC_URL = process.env.BASE_SEPOLIA_RPC_URL || "https://sepolia.base.org";
 const BASESCAN_API_KEY = process.env.BASESCAN_API_KEY || "";
+
+// Only include accounts if a valid private key is provided (must be 66 chars: 0x + 64 hex)
+const isValidPrivateKey = PRIVATE_KEY && /^0x[a-fA-F0-9]{64}$/.test(PRIVATE_KEY);
+const accounts = isValidPrivateKey ? [PRIVATE_KEY] : [];
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -36,13 +40,13 @@ const config: HardhatUserConfig = {
     base: {
       url: BASE_RPC_URL,
       chainId: 8453,
-      accounts: [PRIVATE_KEY],
+      accounts,
       gasPrice: "auto",
     },
     baseSepolia: {
       url: BASE_SEPOLIA_RPC_URL,
       chainId: 84532,
-      accounts: [PRIVATE_KEY],
+      accounts,
       gasPrice: "auto",
     },
   },
