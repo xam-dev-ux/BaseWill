@@ -60,7 +60,20 @@ async function main() {
   console.log("       BaseWill Deployment Script");
   console.log("========================================\n");
 
-  const [deployer] = await ethers.getSigners();
+  const signers = await ethers.getSigners();
+
+  if (signers.length === 0) {
+    console.error("ERROR: No signer available!");
+    console.error("\nTo deploy, you need to:");
+    console.error("1. Set PRIVATE_KEY in your .env file with a valid 64-character hex key");
+    console.error("   Example: PRIVATE_KEY=0x1234...abcd (66 chars total including 0x)");
+    console.error("2. Ensure the wallet has ETH for gas fees");
+    console.error("\nFor testnet deployment, you can get free ETH from:");
+    console.error("   https://www.coinbase.com/faucets/base-ethereum-goerli-faucet");
+    process.exit(1);
+  }
+
+  const [deployer] = signers;
   const balance = await ethers.provider.getBalance(deployer.address);
 
   console.log("Network:", network.name);
