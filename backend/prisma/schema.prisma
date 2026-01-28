@@ -1,0 +1,358 @@
+// BaseWill Database Schema
+// PostgreSQL database for event indexing and notifications
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// User Management
+// ============================================
+
+model User {
+  id        String   @id @default(uuid())
+  address   String   @unique
+  email     String?
+  telegram  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Notification preferences
+  notifyCheckInReminders Boolean @default(true)
+  notifyWillTriggered    Boolean @default(true)
+  notifyAssetDistributed Boolean @default(true)
+  notifyPlatformUpdates  Boolean @default(false)
+
+  // Push subscription
+  pushSubscription Json?
+
+  // Relations
+  testatorWills    Will[]              @relation("TestatorWills")
+  beneficiaryWills WillBeneficiary[]
+  notaryInfo       Notary?
+  notifications    Notification[]
+
+  @@index([address])
+}
+
+// ============================================
+// Will Management
+// ============================================
+
+model Will {
+  id                   String   @id
+  onchainId            BigInt   @unique
+  testatorAddress      String
+  status               WillStatus
+  activationMode       ActivationMode
+  inactivityThreshold  BigInt
+  gracePeriod          BigInt
+  lastActivityTime     DateTime
+  createdAt            DateTime
+  updatedAt            DateTime @updatedAt
+  executedAt           DateTime?
+  totalValue           String   @default("0")
+  privacyMode          PrivacyMode @default(PUBLIC)
+
+  // Trigger info
+  triggeredAt          DateTime?
+  triggerReason        String?
+
+  // Relations
+  testator             User?    @relation("TestatorWills", fields: [testatorAddress], references: [address])
+  beneficiaries        WillBeneficiary[]
+  assets               WillAsset[]
+  activities           Activity[]
+  notaryAssignments    NotaryAssignment[]
+  notifications        Notification[]
+  disputes             Dispute[]
+
+  @@index([testatorAddress])
+  @@index([status])
+  @@index([lastActivityTime])
+}
+
+enum WillStatus {
+  DRAFT
+  ACTIVE
+  TRIGGERED
+  IN_GRACE_PERIOD
+  PENDING_EXECUTION
+  EXECUTED
+  CANCELLED
+  DISPUTED
+}
+
+enum ActivationMode {
+  INACTIVITY_BASED
+  NOTARY_TRIGGERED
+  HYBRID
+  DEAD_MANS_SWITCH
+}
+
+enum PrivacyMode {
+  PUBLIC
+  ENCRYPTED_BENEFICIARIES
+  FULLY_ENCRYPTED
+}
+
+// ============================================
+// Beneficiaries
+// ============================================
+
+model WillBeneficiary {
+  id                 String   @id @default(uuid())
+  willId             String
+  beneficiaryAddress String
+  allocationBps      Int      // Basis points (100 = 1%)
+  vestingType        VestingType
+  vestingDuration    BigInt?
+  cliffDuration      BigInt?
+  hasAccepted        Boolean  @default(false)
+  hasClaimed         Boolean  @default(false)
+  claimedAmount      String   @default("0")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Relations
+  will               Will     @relation(fields: [willId], references: [id])
+  beneficiary        User?    @relation(fields: [beneficiaryAddress], references: [address])
+
+  @@unique([willId, beneficiaryAddress])
+  @@index([beneficiaryAddress])
+}
+
+enum VestingType {
+  IMMEDIATE
+  LINEAR
+  CLIFF
+  MILESTONE
+}
+
+// ============================================
+// Assets
+// ============================================
+
+model WillAsset {
+  id           String    @id @default(uuid())
+  willId       String
+  assetType    AssetType
+  tokenAddress String?   // null for ETH
+  tokenId      BigInt?   // For NFTs
+  amount       String
+  createdAt    DateTime  @default(now())
+
+  // Relations
+  will         Will      @relation(fields: [willId], references: [id])
+
+  @@index([willId])
+}
+
+enum AssetType {
+  ETH
+  ERC20
+  ERC721
+  ERC1155
+}
+
+// ============================================
+// Notary System
+// ============================================
+
+model Notary {
+  id                String   @id @default(uuid())
+  address           String   @unique
+  stake             String
+  reputation        Int      @default(50)
+  isActive          Boolean  @default(true)
+  registeredAt      DateTime @default(now())
+  totalVerifications Int     @default(0)
+  successfulVerifications Int @default(0)
+  rewardsEarned     String   @default("0")
+
+  // Relations
+  user              User     @relation(fields: [address], references: [address])
+  assignments       NotaryAssignment[]
+  verifications     NotaryVerification[]
+
+  @@index([address])
+  @@index([isActive])
+}
+
+model NotaryAssignment {
+  id         String   @id @default(uuid())
+  willId     String
+  notaryAddr String
+  assignedAt DateTime @default(now())
+  required   Boolean  @default(false)
+
+  // Relations
+  will       Will     @relation(fields: [willId], references: [id])
+  notary     Notary   @relation(fields: [notaryAddr], references: [address])
+
+  @@unique([willId, notaryAddr])
+}
+
+model NotaryVerification {
+  id          String   @id @default(uuid())
+  willId      String
+  notaryAddr  String
+  verified    Boolean
+  proofHash   String?
+  submittedAt DateTime @default(now())
+  txHash      String
+
+  // Relations
+  notary      Notary   @relation(fields: [notaryAddr], references: [address])
+
+  @@index([willId])
+  @@index([notaryAddr])
+}
+
+// ============================================
+// Activity Tracking
+// ============================================
+
+model Activity {
+  id        String       @id @default(uuid())
+  willId    String
+  type      ActivityType
+  timestamp DateTime
+  txHash    String?
+  details   Json?
+  createdAt DateTime     @default(now())
+
+  // Relations
+  will      Will         @relation(fields: [willId], references: [id])
+
+  @@index([willId])
+  @@index([timestamp])
+}
+
+enum ActivityType {
+  WILL_CREATED
+  WILL_UPDATED
+  WILL_CANCELLED
+  BENEFICIARY_ADDED
+  BENEFICIARY_REMOVED
+  BENEFICIARY_UPDATED
+  ASSET_DEPOSITED
+  ASSET_WITHDRAWN
+  CHECK_IN
+  DELEGATED_CHECK_IN
+  WILL_TRIGGERED
+  GRACE_PERIOD_STARTED
+  TRIGGER_CANCELLED
+  NOTARY_VERIFICATION
+  WILL_EXECUTED
+  ASSET_DISTRIBUTED
+  ASSET_CLAIMED
+  EMERGENCY_WITHDRAWAL_INITIATED
+  EMERGENCY_WITHDRAWAL_COMPLETED
+  DISPUTE_FILED
+  DISPUTE_RESOLVED
+}
+
+// ============================================
+// Disputes
+// ============================================
+
+model Dispute {
+  id          String        @id @default(uuid())
+  willId      String
+  filer       String
+  reason      String
+  bond        String
+  status      DisputeStatus @default(PENDING)
+  filedAt     DateTime      @default(now())
+  resolvedAt  DateTime?
+  resolution  String?
+
+  // Relations
+  will        Will          @relation(fields: [willId], references: [id])
+
+  @@index([willId])
+  @@index([status])
+}
+
+enum DisputeStatus {
+  PENDING
+  UNDER_REVIEW
+  RESOLVED_IN_FAVOR
+  RESOLVED_AGAINST
+  DISMISSED
+}
+
+// ============================================
+// Notifications
+// ============================================
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  willId    String?
+  type      NotificationType
+  title     String
+  message   String
+  sent      Boolean          @default(false)
+  sentAt    DateTime?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  // Relations
+  user      User             @relation(fields: [userId], references: [id])
+  will      Will?            @relation(fields: [willId], references: [id])
+
+  @@index([userId])
+  @@index([willId])
+  @@index([sent])
+  @@index([type])
+}
+
+enum NotificationType {
+  CHECK_IN_REMINDER_30D
+  CHECK_IN_REMINDER_7D
+  CHECK_IN_REMINDER_24H
+  WILL_TRIGGERED
+  GRACE_PERIOD_ENDING
+  WILL_EXECUTED
+  ASSET_DISTRIBUTED
+  BENEFICIARY_DESIGNATED
+  BENEFICIARY_ACCEPTED
+  NOTARY_VERIFICATION_REQUESTED
+  NOTARY_VERIFICATION_RECEIVED
+  DISPUTE_FILED
+  DISPUTE_RESOLVED
+  PLATFORM_UPDATE
+}
+
+// ============================================
+// Platform Statistics
+// ============================================
+
+model PlatformStats {
+  id                 String   @id @default("singleton")
+  totalWillsCreated  Int      @default(0)
+  activeWills        Int      @default(0)
+  executedWills      Int      @default(0)
+  cancelledWills     Int      @default(0)
+  totalValueSecured  String   @default("0")
+  totalDistributed   String   @default("0")
+  registeredNotaries Int      @default(0)
+  lastUpdated        DateTime @updatedAt
+}
+
+// ============================================
+// Indexer State
+// ============================================
+
+model IndexerState {
+  id              String   @id @default("singleton")
+  lastBlockNumber BigInt   @default(0)
+  lastUpdated     DateTime @updatedAt
+}
