@@ -2,27 +2,56 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="BaseWill - Decentralized inheritance platform for automatic crypto asset distribution on Base" />
-    <meta name="theme-color" content="#1e3a5f" />
+    <link rel="icon" type="image/png" href="/icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
-    <!-- Open Graph -->
-    <meta property="og:title" content="BaseWill - Your Crypto Legacy, Secured Forever" />
-    <meta property="og:description" content="Create onchain wills to protect your digital assets and ensure your loved ones are taken care of" />
+    <!-- Primary Meta Tags -->
+    <title>BaseWill - Decentralized Inheritance Platform</title>
+    <meta name="title" content="BaseWill - Decentralized Inheritance Platform" />
+    <meta name="description" content="Create secure onchain wills for automatic crypto asset distribution to your loved ones. Dead man's switch, vesting schedules, and notary verification on Base." />
+
+    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://basewill.xyz/og.png" />
-    <meta property="og:url" content="https://basewill.xyz" />
+    <meta property="og:url" content="https://basewill.vercel.app" />
+    <meta property="og:title" content="BaseWill - Decentralized Inheritance Platform" />
+    <meta property="og:description" content="Create secure onchain wills for automatic crypto asset distribution on Base" />
+    <meta property="og:image" content="https://basewill.vercel.app/embed.png" />
 
-    <!-- Base Mini App Embed Metadata -->
-    <meta name="fc:miniapp" content='{"version":"next","imageUrl":"https://basewill.xyz/hero.png","button":{"title":"Open BaseWill","action":{"type":"launch_frame","url":"https://basewill.xyz","name":"BaseWill","splashImageUrl":"https://basewill.xyz/splash.png","splashBackgroundColor":"#1e3a5f"}}}' />
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://basewill.vercel.app" />
+    <meta property="twitter:title" content="BaseWill - Decentralized Inheritance Platform" />
+    <meta property="twitter:description" content="Create secure onchain wills for automatic crypto asset distribution on Base" />
+    <meta property="twitter:image" content="https://basewill.vercel.app/embed.png" />
+
+    <!-- Farcaster Mini App Meta Tag -->
+    <meta
+      name="fc:frame"
+      content='{
+        "version": "next",
+        "imageUrl": "https://basewill.vercel.app/embed.png",
+        "button": {
+          "title": "Open BaseWill",
+          "action": {
+            "type": "launch_frame",
+            "name": "BaseWill",
+            "url": "https://basewill.vercel.app",
+            "splashImageUrl": "https://basewill.vercel.app/splash.png",
+            "splashBackgroundColor": "#1e3a5f"
+          }
+        }
+      }'
+    />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
-    <title>BaseWill - Decentralized Inheritance Platform</title>
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#1e3a5f" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   </head>
   <body class="bg-background-light">
     <div id="root"></div>

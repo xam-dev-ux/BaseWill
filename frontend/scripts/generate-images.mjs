@@ -128,7 +128,13 @@ async function generateImages() {
     .png()
     .toFile(join(publicDir, 'og.png'));
 
-  // 5. Screenshots (1284x2778)
+  // 5. Embed Image (1200x630) - for fc:frame embed
+  console.log('Creating embed.png (1200x630)...');
+  await sharp(Buffer.from(createHeroSvg(1200, 630)))
+    .png()
+    .toFile(join(publicDir, 'embed.png'));
+
+  // 6. Screenshots (1284x2778)
   const screenshots = [
     {
       name: 'dashboard.png',
