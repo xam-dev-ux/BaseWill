@@ -1,0 +1,20 @@
+{
+  "network": "base",
+  "chainId": 8453,
+  "deployer": "0x8F058fE6b568D97f85d517Ac441b52B95722fDDe",
+  "timestamp": "2026-01-28T20:48:55.096Z",
+  "contracts": {
+    "NotaryRegistry": "0x215F736Fac524106983CFf870873cF511538F8D2",
+    "BaseWill": "0xf691C1c524Cf4650b98E8687757bda638f508378"
+  },
+  "config": {
+    "minimumNotaryStake": "0.1",
+    "withdrawalCooldown": 604800,
+    "commissionWallets": [
+      "0x8f058fe6b568d97f85d517ac441b52b95722fdde"
+    ],
+    "platformFeeBps": 100,
+    "notaryRewardBps": 50,
+    "executorRewardBps": 10
+  }
+}
