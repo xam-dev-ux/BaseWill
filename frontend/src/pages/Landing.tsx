@@ -78,26 +78,6 @@ function Landing() {
             </a>
           </motion.div>
         </div>
-
-        {/* Trust Indicators */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="max-w-4xl mx-auto mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 text-center"
-        >
-          {[
-            { value: '100+ ETH', label: 'Value Protected' },
-            { value: '250+', label: 'Wills Created' },
-            { value: '50+', label: 'Distributions' },
-            { value: '99.9%', label: 'Uptime' },
-          ].map((stat, index) => (
-            <div key={index} className="text-white">
-              <div className="text-3xl md:text-4xl font-bold text-secondary-400">{stat.value}</div>
-              <div className="text-primary-200 text-sm mt-1">{stat.label}</div>
-            </div>
-          ))}
-        </motion.div>
       </section>
 
       {/* How It Works */}
@@ -306,12 +286,30 @@ function Landing() {
               Built on Base. Your assets, your rules, your legacy.
             </p>
           </div>
-          <div className="mt-8 pt-8 border-t border-primary-800 text-center text-sm">
-            <p className="text-primary-400">
-              DISCLAIMER: BaseWill is a technical tool, not legal advice. Consult qualified attorneys for estate planning.
-              <br />
-              Enforceability varies by jurisdiction. Use at your own discretion.
-            </p>
+
+          {/* Terms and Conditions */}
+          <div className="mt-8 pt-8 border-t border-primary-800">
+            <h3 className="text-white font-semibold mb-4 text-center">Terms of Use & Disclaimer</h3>
+            <div className="text-xs text-primary-400 space-y-3 max-w-4xl mx-auto">
+              <p>
+                <strong className="text-primary-300">NO LIABILITY:</strong> By using BaseWill, you acknowledge and agree that the developers, creators, operators, and affiliates of this platform shall not be held liable for any direct, indirect, incidental, special, consequential, or exemplary damages, including but not limited to loss of funds, assets, profits, data, or any other losses arising from your use of this service.
+              </p>
+              <p>
+                <strong className="text-primary-300">USE AT YOUR OWN RISK:</strong> BaseWill is an experimental decentralized application provided "as is" without warranties of any kind. Smart contracts may contain bugs, vulnerabilities, or behave unexpectedly. You are solely responsible for your interactions with the blockchain and any assets you deposit.
+              </p>
+              <p>
+                <strong className="text-primary-300">NOT LEGAL ADVICE:</strong> This platform is a technical tool only and does not constitute legal, financial, or estate planning advice. The enforceability of onchain wills varies by jurisdiction and may not be recognized by legal authorities. Consult qualified professionals for estate planning.
+              </p>
+              <p>
+                <strong className="text-primary-300">IRREVERSIBLE TRANSACTIONS:</strong> Blockchain transactions are irreversible. Once assets are deposited or distributed, they cannot be recovered by the platform. Verify all addresses and configurations carefully before confirming transactions.
+              </p>
+              <p>
+                <strong className="text-primary-300">REGULATORY COMPLIANCE:</strong> You are responsible for ensuring compliance with all applicable laws and regulations in your jurisdiction. The availability of this service does not imply legality in your location.
+              </p>
+              <p className="text-center pt-4 text-primary-500">
+                By connecting your wallet and using BaseWill, you accept these terms in full.
+              </p>
+            </div>
           </div>
         </div>
       </footer>
