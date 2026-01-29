@@ -1,12 +1,13 @@
 import { useNavigate } from 'react-router-dom';
 import { ConnectKitButton } from 'connectkit';
 import { useAccount } from 'wagmi';
-import { motion } from 'framer-motion';
-import { useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, useState } from 'react';
 
 function Landing() {
   const { isConnected } = useAccount();
   const navigate = useNavigate();
+  const [showTerms, setShowTerms] = useState(false);
 
   // Redirect to dashboard if already connected
   useEffect(() => {
@@ -271,7 +272,7 @@ function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-primary-900 text-primary-200 py-12 px-4 sm:px-6 lg:px-8">
+      <footer className="bg-primary-900 text-primary-200 py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-2 mb-4 md:mb-0">
@@ -282,37 +283,99 @@ function Landing() {
               </div>
               <span className="text-xl font-bold text-white">BaseWill</span>
             </div>
-            <p className="text-sm">
-              Built on Base. Your assets, your rules, your legacy.
-            </p>
-          </div>
-
-          {/* Terms and Conditions */}
-          <div className="mt-8 pt-8 border-t border-primary-800">
-            <h3 className="text-white font-semibold mb-4 text-center">Terms of Use & Disclaimer</h3>
-            <div className="text-xs text-primary-400 space-y-3 max-w-4xl mx-auto">
-              <p>
-                <strong className="text-primary-300">NO LIABILITY:</strong> By using BaseWill, you acknowledge and agree that the developers, creators, operators, and affiliates of this platform shall not be held liable for any direct, indirect, incidental, special, consequential, or exemplary damages, including but not limited to loss of funds, assets, profits, data, or any other losses arising from your use of this service.
-              </p>
-              <p>
-                <strong className="text-primary-300">USE AT YOUR OWN RISK:</strong> BaseWill is an experimental decentralized application provided "as is" without warranties of any kind. Smart contracts may contain bugs, vulnerabilities, or behave unexpectedly. You are solely responsible for your interactions with the blockchain and any assets you deposit.
-              </p>
-              <p>
-                <strong className="text-primary-300">NOT LEGAL ADVICE:</strong> This platform is a technical tool only and does not constitute legal, financial, or estate planning advice. The enforceability of onchain wills varies by jurisdiction and may not be recognized by legal authorities. Consult qualified professionals for estate planning.
-              </p>
-              <p>
-                <strong className="text-primary-300">IRREVERSIBLE TRANSACTIONS:</strong> Blockchain transactions are irreversible. Once assets are deposited or distributed, they cannot be recovered by the platform. Verify all addresses and configurations carefully before confirming transactions.
-              </p>
-              <p>
-                <strong className="text-primary-300">REGULATORY COMPLIANCE:</strong> You are responsible for ensuring compliance with all applicable laws and regulations in your jurisdiction. The availability of this service does not imply legality in your location.
-              </p>
-              <p className="text-center pt-4 text-primary-500">
-                By connecting your wallet and using BaseWill, you accept these terms in full.
-              </p>
+            <div className="flex items-center space-x-4 text-sm">
+              <span>Built on Base</span>
+              <span className="text-primary-600">|</span>
+              <button
+                onClick={() => setShowTerms(true)}
+                className="text-primary-300 hover:text-white underline transition-colors"
+              >
+                Terms & Conditions
+              </button>
             </div>
           </div>
         </div>
       </footer>
+
+      {/* Terms Modal */}
+      <AnimatePresence>
+        {showTerms && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowTerms(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900">Terms of Use & Disclaimer</h2>
+                  <button
+                    onClick={() => setShowTerms(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="text-sm text-gray-600 space-y-4">
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-2">1. NO LIABILITY</h3>
+                    <p>By using BaseWill, you acknowledge and agree that the developers, creators, operators, and affiliates of this platform shall not be held liable for any direct, indirect, incidental, special, consequential, or exemplary damages, including but not limited to loss of funds, assets, profits, data, or any other losses arising from your use of this service.</p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-2">2. USE AT YOUR OWN RISK</h3>
+                    <p>BaseWill is an experimental decentralized application provided "as is" without warranties of any kind, express or implied. Smart contracts may contain bugs, vulnerabilities, or behave unexpectedly. You are solely responsible for your interactions with the blockchain and any assets you deposit.</p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-2">3. NOT LEGAL ADVICE</h3>
+                    <p>This platform is a technical tool only and does not constitute legal, financial, tax, or estate planning advice. The enforceability of onchain wills varies by jurisdiction and may not be recognized by legal authorities. Consult qualified professionals for estate planning matters.</p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-2">4. IRREVERSIBLE TRANSACTIONS</h3>
+                    <p>Blockchain transactions are irreversible. Once assets are deposited or distributed, they cannot be recovered by the platform or its operators. Verify all wallet addresses and configurations carefully before confirming any transaction.</p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-2">5. REGULATORY COMPLIANCE</h3>
+                    <p>You are solely responsible for ensuring compliance with all applicable laws and regulations in your jurisdiction. The availability of this service does not imply legality in your location.</p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-2">6. NO GUARANTEES</h3>
+                    <p>We make no guarantees regarding the availability, functionality, or security of this platform. Service may be interrupted, modified, or discontinued at any time without notice.</p>
+                  </div>
+
+                  <div className="pt-4 border-t border-gray-200">
+                    <p className="text-center text-gray-500">
+                      By connecting your wallet and using BaseWill, you acknowledge that you have read, understood, and agree to be bound by these terms.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowTerms(false)}
+                  className="w-full mt-6 btn-primary"
+                >
+                  I Understand
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
