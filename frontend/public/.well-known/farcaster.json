@@ -1,30 +1,30 @@
 {
   "accountAssociation": {
-    "header": "",
-    "payload": "",
-    "signature": ""
+    "header": "eyJmaWQiOjU4MDczOCwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDEwOUM5ZTgwMTNFY2U4ODZENGY4QUUyNjkyNTRkZTkzMEFFZmNkNDQifQ",
+    "payload": "eyJkb21haW4iOiJiYXNlLXdpbGwudmVyY2VsLmFwcCJ9",
+    "signature": "WQlIsOX1jeDXvyCzaIq02sJJkrjJgr7f27w9xD6BIotrOEwiQ/Jihoz5naYkkNlebpGuukXmvRMRKCCQD0rPIhs="
   },
   "miniapp": {
     "version": "1",
     "name": "BaseWill",
-    "homeUrl": "https://basewill.vercel.app",
-    "iconUrl": "https://basewill.vercel.app/icon.png",
-    "splashImageUrl": "https://basewill.vercel.app/splash.png",
+    "homeUrl": "https://base-will.vercel.app",
+    "iconUrl": "https://base-will.vercel.app/icon.png",
+    "splashImageUrl": "https://base-will.vercel.app/splash.png",
     "splashBackgroundColor": "#1e3a5f",
     "subtitle": "Onchain inheritance made easy",
     "description": "Create secure onchain wills for automatic crypto asset distribution to your loved ones. Dead man's switch, vesting schedules, and notary verification.",
     "screenshotUrls": [
-      "https://basewill.vercel.app/screenshots/dashboard.png",
-      "https://basewill.vercel.app/screenshots/create-will.png",
-      "https://basewill.vercel.app/screenshots/beneficiary.png"
+      "https://base-will.vercel.app/screenshots/dashboard.png",
+      "https://base-will.vercel.app/screenshots/create-will.png",
+      "https://base-will.vercel.app/screenshots/beneficiary.png"
     ],
     "primaryCategory": "finance",
     "tags": ["inheritance", "will", "crypto", "defi"],
-    "heroImageUrl": "https://basewill.vercel.app/hero.png",
+    "heroImageUrl": "https://base-will.vercel.app/hero.png",
     "tagline": "Secure your crypto legacy",
     "ogTitle": "BaseWill",
     "ogDescription": "Create secure onchain wills for automatic crypto asset distribution on Base",
-    "ogImageUrl": "https://basewill.vercel.app/embed.png",
+    "ogImageUrl": "https://base-will.vercel.app/embed.png",
     "noindex": false
   }
 }
