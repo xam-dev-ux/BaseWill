@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ConnectKitButton } from 'connectkit';
 import { useAccount } from 'wagmi';
 import { motion } from 'framer-motion';

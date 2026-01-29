@@ -20,6 +20,15 @@ const baseWillAbi = parseAbi([
   'function removeBeneficiary(uint256 willId, address beneficiary)',
 ]);
 
+export interface PlatformStats {
+  totalValueSecured: bigint;
+  totalWillsCreated: bigint;
+  activeWills: bigint;
+  executedWills: bigint;
+  totalDistributed: bigint;
+  registeredNotaries: bigint;
+}
+
 export interface WillData {
   id: bigint;
   testator: `0x${string}`;
@@ -160,7 +169,7 @@ export function usePlatformStats() {
 
   return useQuery({
     queryKey: ['platformStats', chain?.id],
-    queryFn: async () => {
+    queryFn: async (): Promise<PlatformStats | null> => {
       if (!publicClient || !addresses) return null;
 
       try {
@@ -168,7 +177,7 @@ export function usePlatformStats() {
           address: addresses.baseWill as `0x${string}`,
           abi: baseWillAbi,
           functionName: 'getPlatformStats',
-        });
+        }) as PlatformStats;
 
         return stats;
       } catch (error) {

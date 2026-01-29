@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm, useFieldArray } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import { parseEther, keccak256, toHex } from 'viem';
+import { keccak256, toHex } from 'viem';
 import { useCreateWill } from '../hooks/useWill';
 
 interface BeneficiaryForm {
@@ -41,7 +41,6 @@ function CreateWill() {
     handleSubmit,
     control,
     watch,
-    formState: { errors },
   } = useForm<WillFormData>({
     defaultValues: {
       name: '',

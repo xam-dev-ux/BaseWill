@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow, differenceInDays } from 'date-fns';
-import { formatEther } from 'viem';
 
 interface WillData {
   id: bigint | string;

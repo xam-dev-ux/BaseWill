@@ -13,7 +13,7 @@ const navigation = [
 
 function Layout() {
   const location = useLocation();
-  const { isConnected, address } = useAccount();
+  const { isConnected } = useAccount();
 
   // Redirect to landing if not connected
   if (!isConnected) {

@@ -1,9 +1,6 @@
-import { useAccount } from 'wagmi';
-import { motion } from 'framer-motion';
 import { useState } from 'react';
 
 function NotaryDashboard() {
-  const { address } = useAccount();
   const [isRegistered] = useState(false);
 
   if (!isRegistered) {

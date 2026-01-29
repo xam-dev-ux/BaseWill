@@ -1,8 +1,4 @@
-import { useAccount } from 'wagmi';
-import { motion } from 'framer-motion';
-
 function BeneficiaryView() {
-  const { address } = useAccount();
 
   return (
     <div className="space-y-8">

@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
-import { formatDistanceToNow, differenceInDays, format } from 'date-fns';
+import { formatDistanceToNow, differenceInDays } from 'date-fns';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useWill, useCheckIn, useDepositETH } from '../hooks/useWill';
