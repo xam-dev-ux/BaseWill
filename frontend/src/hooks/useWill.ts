@@ -1,24 +1,194 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
 import { getContractAddresses } from '../config/wagmi';
-import { parseAbi, formatEther } from 'viem';
+import { formatEther } from 'viem';
 
-// ABI fragments for BaseWill contract
-const baseWillAbi = parseAbi([
-  'function getWill(uint256 willId) view returns (tuple(uint256 id, address testator, uint8 status, uint8 activationMode, uint8 privacyMode, uint256 inactivityThreshold, uint256 gracePeriod, uint256 disputePeriod, uint256 createdAt, uint256 updatedAt, uint256 lastActivity, uint256 triggerTime, uint256 executionTime, bytes32 metadataHash, bytes32 encryptedDataHash, address backupExecutor, uint256 version))',
-  'function getTestatorWills(address testator) view returns (uint256[])',
-  'function getBeneficiaryWills(address beneficiary) view returns (uint256[])',
-  'function getBeneficiaries(uint256 willId) view returns (tuple(address beneficiaryAddress, uint256 allocationBps, tuple(uint8 vestingType, uint256 startDelay, uint256 duration, uint256 cliffDuration, uint256 releaseInterval, bytes32 milestoneCondition) vestingSchedule, bool isPrimary, bool hasAccepted, bytes32 labelHash, uint256 amountClaimed, uint256 lastClaimTime)[])',
-  'function getWillValue(uint256 willId) view returns (uint256 ethBalance, uint256[] tokenBalances, uint256 nftCount)',
-  'function getPlatformStats() view returns (tuple(uint256 totalValueSecured, uint256 totalWillsCreated, uint256 activeWills, uint256 executedWills, uint256 totalDistributed, uint256 registeredNotaries))',
-  'function createWill(uint8 activationMode, uint256 inactivityThreshold, uint256 gracePeriod, uint256 disputePeriod, bytes32 metadataHash, address backupExecutor) returns (uint256 willId)',
-  'function checkIn(uint256 willId)',
-  'function depositETH(uint256 willId) payable',
-  'function activateWill(uint256 willId)',
-  'function cancelWill(uint256 willId, string reason)',
-  'function addBeneficiary(uint256 willId, address beneficiary, uint256 allocationBps, tuple(uint8 vestingType, uint256 startDelay, uint256 duration, uint256 cliffDuration, uint256 releaseInterval, bytes32 milestoneCondition) vestingSchedule, bool isPrimary, bytes32 labelHash)',
-  'function removeBeneficiary(uint256 willId, address beneficiary)',
-]);
+// ABI fragments for BaseWill contract (JSON format for complex tuples)
+const baseWillAbi = [
+  {
+    name: 'getWill',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ name: 'willId', type: 'uint256' }],
+    outputs: [{
+      name: '',
+      type: 'tuple',
+      components: [
+        { name: 'id', type: 'uint256' },
+        { name: 'testator', type: 'address' },
+        { name: 'status', type: 'uint8' },
+        { name: 'activationMode', type: 'uint8' },
+        { name: 'privacyMode', type: 'uint8' },
+        { name: 'inactivityThreshold', type: 'uint256' },
+        { name: 'gracePeriod', type: 'uint256' },
+        { name: 'disputePeriod', type: 'uint256' },
+        { name: 'createdAt', type: 'uint256' },
+        { name: 'updatedAt', type: 'uint256' },
+        { name: 'lastActivity', type: 'uint256' },
+        { name: 'triggerTime', type: 'uint256' },
+        { name: 'executionTime', type: 'uint256' },
+        { name: 'metadataHash', type: 'bytes32' },
+        { name: 'encryptedDataHash', type: 'bytes32' },
+        { name: 'backupExecutor', type: 'address' },
+        { name: 'version', type: 'uint256' },
+      ],
+    }],
+  },
+  {
+    name: 'getTestatorWills',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ name: 'testator', type: 'address' }],
+    outputs: [{ name: '', type: 'uint256[]' }],
+  },
+  {
+    name: 'getBeneficiaryWills',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ name: 'beneficiary', type: 'address' }],
+    outputs: [{ name: '', type: 'uint256[]' }],
+  },
+  {
+    name: 'getBeneficiaries',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ name: 'willId', type: 'uint256' }],
+    outputs: [{
+      name: '',
+      type: 'tuple[]',
+      components: [
+        { name: 'beneficiaryAddress', type: 'address' },
+        { name: 'allocationBps', type: 'uint256' },
+        {
+          name: 'vestingSchedule',
+          type: 'tuple',
+          components: [
+            { name: 'vestingType', type: 'uint8' },
+            { name: 'startDelay', type: 'uint256' },
+            { name: 'duration', type: 'uint256' },
+            { name: 'cliffDuration', type: 'uint256' },
+            { name: 'releaseInterval', type: 'uint256' },
+            { name: 'milestoneCondition', type: 'bytes32' },
+          ],
+        },
+        { name: 'isPrimary', type: 'bool' },
+        { name: 'hasAccepted', type: 'bool' },
+        { name: 'labelHash', type: 'bytes32' },
+        { name: 'amountClaimed', type: 'uint256' },
+        { name: 'lastClaimTime', type: 'uint256' },
+      ],
+    }],
+  },
+  {
+    name: 'getWillValue',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ name: 'willId', type: 'uint256' }],
+    outputs: [
+      { name: 'ethBalance', type: 'uint256' },
+      { name: 'tokenBalances', type: 'uint256[]' },
+      { name: 'nftCount', type: 'uint256' },
+    ],
+  },
+  {
+    name: 'getPlatformStats',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{
+      name: '',
+      type: 'tuple',
+      components: [
+        { name: 'totalValueSecured', type: 'uint256' },
+        { name: 'totalWillsCreated', type: 'uint256' },
+        { name: 'activeWills', type: 'uint256' },
+        { name: 'executedWills', type: 'uint256' },
+        { name: 'totalDistributed', type: 'uint256' },
+        { name: 'registeredNotaries', type: 'uint256' },
+      ],
+    }],
+  },
+  {
+    name: 'createWill',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'activationMode', type: 'uint8' },
+      { name: 'inactivityThreshold', type: 'uint256' },
+      { name: 'gracePeriod', type: 'uint256' },
+      { name: 'disputePeriod', type: 'uint256' },
+      { name: 'metadataHash', type: 'bytes32' },
+      { name: 'backupExecutor', type: 'address' },
+    ],
+    outputs: [{ name: 'willId', type: 'uint256' }],
+  },
+  {
+    name: 'checkIn',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [{ name: 'willId', type: 'uint256' }],
+    outputs: [],
+  },
+  {
+    name: 'depositETH',
+    type: 'function',
+    stateMutability: 'payable',
+    inputs: [{ name: 'willId', type: 'uint256' }],
+    outputs: [],
+  },
+  {
+    name: 'activateWill',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [{ name: 'willId', type: 'uint256' }],
+    outputs: [],
+  },
+  {
+    name: 'cancelWill',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'willId', type: 'uint256' },
+      { name: 'reason', type: 'string' },
+    ],
+    outputs: [],
+  },
+  {
+    name: 'addBeneficiary',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'willId', type: 'uint256' },
+      { name: 'beneficiary', type: 'address' },
+      { name: 'allocationBps', type: 'uint256' },
+      {
+        name: 'vestingSchedule',
+        type: 'tuple',
+        components: [
+          { name: 'vestingType', type: 'uint8' },
+          { name: 'startDelay', type: 'uint256' },
+          { name: 'duration', type: 'uint256' },
+          { name: 'cliffDuration', type: 'uint256' },
+          { name: 'releaseInterval', type: 'uint256' },
+          { name: 'milestoneCondition', type: 'bytes32' },
+        ],
+      },
+      { name: 'isPrimary', type: 'bool' },
+      { name: 'labelHash', type: 'bytes32' },
+    ],
+    outputs: [],
+  },
+  {
+    name: 'removeBeneficiary',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'willId', type: 'uint256' },
+      { name: 'beneficiary', type: 'address' },
+    ],
+    outputs: [],
+  },
+] as const;
 
 export interface PlatformStats {
   totalValueSecured: bigint;
