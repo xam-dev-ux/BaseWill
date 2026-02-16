@@ -102,13 +102,19 @@ async function main() {
   const notaryRegistryAddress = await notaryRegistry.getAddress();
   console.log("NotaryRegistry deployed to:", notaryRegistryAddress);
 
-  // Deploy BaseWillCore (slimmer version that fits within contract size limit)
-  console.log("\nDeploying BaseWillCore...");
-  const BaseWillCore = await ethers.getContractFactory("BaseWillCore");
-  const baseWill = await BaseWillCore.deploy(config.commissionWallets);
+  // Deploy BaseWill (complete version with all features)
+  console.log("\nDeploying BaseWill...");
+  const BaseWill = await ethers.getContractFactory("BaseWill");
+  const baseWill = await BaseWill.deploy(
+    notaryRegistryAddress,
+    config.commissionWallets,
+    config.platformFeeBps,
+    config.notaryRewardBps,
+    config.executorRewardBps
+  );
   await baseWill.waitForDeployment();
   const baseWillAddress = await baseWill.getAddress();
-  console.log("BaseWillCore deployed to:", baseWillAddress);
+  console.log("BaseWill deployed to:", baseWillAddress);
 
   // Configure NotaryRegistry with BaseWill address
   console.log("\nConfiguring NotaryRegistry...");
