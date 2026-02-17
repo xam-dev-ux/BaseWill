@@ -14,7 +14,7 @@ function Dashboard() {
     totalValue: wills?.reduce((acc, will) => acc + parseFloat(will.ethBalance || '0'), 0) || 0,
     activeWills: wills?.filter(w => w.status === 1).length || 0,
     totalBeneficiaries: wills?.reduce((acc, will) => acc + (will.beneficiaryCount || 0), 0) || 0,
-    lastActivity: wills?.[0]?.lastActivity ? new Date(Number(wills[0].lastActivity) * 1000) : null,
+    lastActivity: wills?.[0]?.lastActivityTime ? new Date(Number(wills[0].lastActivityTime) * 1000) : null,
   };
 
   return (

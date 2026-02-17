@@ -44,8 +44,8 @@ function WillDetail() {
     );
   }
 
-  const lastActivity = new Date(Number(will.lastActivity) * 1000);
-  const createdAt = new Date(Number(will.createdAt) * 1000);
+  const lastActivity = new Date(Number(will.lastActivityTime) * 1000);
+  const createdAt = new Date(Number(will.lastActivityTime) * 1000);
   const inactivityThreshold = Number(will.inactivityThreshold);
   const triggerDate = new Date(lastActivity.getTime() + inactivityThreshold * 1000);
   const daysUntilTrigger = differenceInDays(triggerDate, new Date());
@@ -268,9 +268,7 @@ function WillDetail() {
               </div>
               <div className="flex justify-between">
                 <dt className="text-gray-500">Activation Mode</dt>
-                <dd className="font-medium text-gray-900">
-                  {['Time-Based', 'Notary Verified', 'Hybrid'][will.activationMode]}
-                </dd>
+                <dd className="font-medium text-gray-900">Time-Based</dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-gray-500">Inactivity Threshold</dt>
@@ -285,8 +283,8 @@ function WillDetail() {
                 </dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-gray-500">Version</dt>
-                <dd className="font-medium text-gray-900">{will.version.toString()}</dd>
+                <dt className="text-gray-500">Contract</dt>
+                <dd className="font-medium text-gray-900">BaseWillCore v1</dd>
               </div>
             </dl>
           </div>

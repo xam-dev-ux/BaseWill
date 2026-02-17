@@ -3,37 +3,27 @@ import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
 import { getContractAddresses } from '../config/wagmi';
 import { formatEther } from 'viem';
 
-// ABI fragments for BaseWill contract (JSON format for complex tuples)
+// ABI for BaseWillCore contract (deployed on Base Mainnet)
 const baseWillAbi = [
+  // View: read will by id (public mapping getter)
   {
-    name: 'getWill',
+    name: 'wills',
     type: 'function',
     stateMutability: 'view',
     inputs: [{ name: 'willId', type: 'uint256' }],
-    outputs: [{
-      name: '',
-      type: 'tuple',
-      components: [
-        { name: 'id', type: 'uint256' },
-        { name: 'testator', type: 'address' },
-        { name: 'status', type: 'uint8' },
-        { name: 'activationMode', type: 'uint8' },
-        { name: 'privacyMode', type: 'uint8' },
-        { name: 'inactivityThreshold', type: 'uint256' },
-        { name: 'gracePeriod', type: 'uint256' },
-        { name: 'disputePeriod', type: 'uint256' },
-        { name: 'createdAt', type: 'uint256' },
-        { name: 'updatedAt', type: 'uint256' },
-        { name: 'lastActivity', type: 'uint256' },
-        { name: 'triggerTime', type: 'uint256' },
-        { name: 'executionTime', type: 'uint256' },
-        { name: 'metadataHash', type: 'bytes32' },
-        { name: 'encryptedDataHash', type: 'bytes32' },
-        { name: 'backupExecutor', type: 'address' },
-        { name: 'version', type: 'uint256' },
-      ],
-    }],
+    outputs: [
+      { name: 'testator', type: 'address' },
+      { name: 'status', type: 'uint8' },
+      { name: 'inactivityThreshold', type: 'uint256' },
+      { name: 'lastActivityTime', type: 'uint256' },
+      { name: 'gracePeriod', type: 'uint256' },
+      { name: 'triggeredAt', type: 'uint256' },
+      { name: 'totalValue', type: 'uint256' },
+      { name: 'requiredNotaries', type: 'uint256' },
+      { name: 'verificationCount', type: 'uint256' },
+    ],
   },
+  // View: get all will IDs for a testator
   {
     name: 'getTestatorWills',
     type: 'function',
@@ -41,13 +31,15 @@ const baseWillAbi = [
     inputs: [{ name: 'testator', type: 'address' }],
     outputs: [{ name: '', type: 'uint256[]' }],
   },
+  // View: get all will IDs for a beneficiary (public mapping getter)
   {
-    name: 'getBeneficiaryWills',
+    name: 'beneficiaryWills',
     type: 'function',
     stateMutability: 'view',
     inputs: [{ name: 'beneficiary', type: 'address' }],
     outputs: [{ name: '', type: 'uint256[]' }],
   },
+  // View: get beneficiaries for a will
   {
     name: 'getBeneficiaries',
     type: 'function',
@@ -57,102 +49,50 @@ const baseWillAbi = [
       name: '',
       type: 'tuple[]',
       components: [
-        { name: 'beneficiaryAddress', type: 'address' },
+        { name: 'addr', type: 'address' },
         { name: 'allocationBps', type: 'uint256' },
-        {
-          name: 'vestingSchedule',
-          type: 'tuple',
-          components: [
-            { name: 'vestingType', type: 'uint8' },
-            { name: 'startDelay', type: 'uint256' },
-            { name: 'duration', type: 'uint256' },
-            { name: 'cliffDuration', type: 'uint256' },
-            { name: 'releaseInterval', type: 'uint256' },
-            { name: 'milestoneCondition', type: 'bytes32' },
-          ],
-        },
-        { name: 'isPrimary', type: 'bool' },
-        { name: 'hasAccepted', type: 'bool' },
-        { name: 'labelHash', type: 'bytes32' },
+        { name: 'vestingType', type: 'uint8' },
+        { name: 'vestingDuration', type: 'uint256' },
         { name: 'amountClaimed', type: 'uint256' },
-        { name: 'lastClaimTime', type: 'uint256' },
       ],
     }],
   },
+  // View: get total ETH value in a will
   {
-    name: 'getWillValue',
+    name: 'getWillTotalValue',
     type: 'function',
     stateMutability: 'view',
     inputs: [{ name: 'willId', type: 'uint256' }],
-    outputs: [
-      { name: 'ethBalance', type: 'uint256' },
-      { name: 'tokenBalances', type: 'uint256[]' },
-      { name: 'nftCount', type: 'uint256' },
-    ],
+    outputs: [{ name: '', type: 'uint256' }],
   },
+  // View: global will counter
   {
-    name: 'getPlatformStats',
+    name: 'willCounter',
     type: 'function',
     stateMutability: 'view',
     inputs: [],
-    outputs: [{
-      name: '',
-      type: 'tuple',
-      components: [
-        { name: 'totalValueSecured', type: 'uint256' },
-        { name: 'totalWillsCreated', type: 'uint256' },
-        { name: 'activeWills', type: 'uint256' },
-        { name: 'executedWills', type: 'uint256' },
-        { name: 'totalDistributed', type: 'uint256' },
-        { name: 'registeredNotaries', type: 'uint256' },
-      ],
-    }],
+    outputs: [{ name: '', type: 'uint256' }],
   },
+  // Write: create a will
   {
     name: 'createWill',
     type: 'function',
-    stateMutability: 'nonpayable',
+    stateMutability: 'payable',
     inputs: [
-      { name: 'activationMode', type: 'uint8' },
       { name: 'inactivityThreshold', type: 'uint256' },
       { name: 'gracePeriod', type: 'uint256' },
-      { name: 'disputePeriod', type: 'uint256' },
-      { name: 'metadataHash', type: 'bytes32' },
-      { name: 'backupExecutor', type: 'address' },
     ],
-    outputs: [{ name: 'willId', type: 'uint256' }],
+    outputs: [{ name: '', type: 'uint256' }],
   },
-  {
-    name: 'checkIn',
-    type: 'function',
-    stateMutability: 'nonpayable',
-    inputs: [{ name: 'willId', type: 'uint256' }],
-    outputs: [],
-  },
-  {
-    name: 'depositETH',
-    type: 'function',
-    stateMutability: 'payable',
-    inputs: [{ name: 'willId', type: 'uint256' }],
-    outputs: [],
-  },
-  {
-    name: 'activateWill',
-    type: 'function',
-    stateMutability: 'nonpayable',
-    inputs: [{ name: 'willId', type: 'uint256' }],
-    outputs: [],
-  },
+  // Write: cancel a will
   {
     name: 'cancelWill',
     type: 'function',
     stateMutability: 'nonpayable',
-    inputs: [
-      { name: 'willId', type: 'uint256' },
-      { name: 'reason', type: 'string' },
-    ],
+    inputs: [{ name: 'willId', type: 'uint256' }],
     outputs: [],
   },
+  // Write: add a beneficiary
   {
     name: 'addBeneficiary',
     type: 'function',
@@ -161,34 +101,62 @@ const baseWillAbi = [
       { name: 'willId', type: 'uint256' },
       { name: 'beneficiary', type: 'address' },
       { name: 'allocationBps', type: 'uint256' },
-      {
-        name: 'vestingSchedule',
-        type: 'tuple',
-        components: [
-          { name: 'vestingType', type: 'uint8' },
-          { name: 'startDelay', type: 'uint256' },
-          { name: 'duration', type: 'uint256' },
-          { name: 'cliffDuration', type: 'uint256' },
-          { name: 'releaseInterval', type: 'uint256' },
-          { name: 'milestoneCondition', type: 'bytes32' },
-        ],
-      },
-      { name: 'isPrimary', type: 'bool' },
-      { name: 'labelHash', type: 'bytes32' },
+      { name: 'vestingType', type: 'uint8' },
+      { name: 'vestingDuration', type: 'uint256' },
     ],
     outputs: [],
   },
+  // Write: remove a beneficiary by index
   {
     name: 'removeBeneficiary',
     type: 'function',
     stateMutability: 'nonpayable',
     inputs: [
       { name: 'willId', type: 'uint256' },
-      { name: 'beneficiary', type: 'address' },
+      { name: 'index', type: 'uint256' },
     ],
     outputs: [],
   },
+  // Write: deposit ETH into a will
+  {
+    name: 'depositETH',
+    type: 'function',
+    stateMutability: 'payable',
+    inputs: [{ name: 'willId', type: 'uint256' }],
+    outputs: [],
+  },
+  // Write: check in to reset inactivity timer
+  {
+    name: 'checkIn',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [{ name: 'willId', type: 'uint256' }],
+    outputs: [],
+  },
 ] as const;
+
+export interface WillData {
+  id: bigint;
+  testator: `0x${string}`;
+  status: number;
+  inactivityThreshold: bigint;
+  lastActivityTime: bigint;
+  gracePeriod: bigint;
+  triggeredAt: bigint;
+  totalValue: bigint;
+  requiredNotaries: bigint;
+  verificationCount: bigint;
+  ethBalance?: string;
+  beneficiaryCount?: number;
+}
+
+export interface BeneficiaryData {
+  addr: `0x${string}`;
+  allocationBps: bigint;
+  vestingType: number;
+  vestingDuration: bigint;
+  amountClaimed: bigint;
+}
 
 export interface PlatformStats {
   totalValueSecured: bigint;
@@ -197,28 +165,6 @@ export interface PlatformStats {
   executedWills: bigint;
   totalDistributed: bigint;
   registeredNotaries: bigint;
-}
-
-export interface WillData {
-  id: bigint;
-  testator: `0x${string}`;
-  status: number;
-  activationMode: number;
-  privacyMode: number;
-  inactivityThreshold: bigint;
-  gracePeriod: bigint;
-  disputePeriod: bigint;
-  createdAt: bigint;
-  updatedAt: bigint;
-  lastActivity: bigint;
-  triggerTime: bigint;
-  executionTime: bigint;
-  metadataHash: `0x${string}`;
-  encryptedDataHash: `0x${string}`;
-  backupExecutor: `0x${string}`;
-  version: bigint;
-  ethBalance?: string;
-  beneficiaryCount?: number;
 }
 
 // Hook to get a single will
@@ -233,19 +179,17 @@ export function useWill(willId: string | undefined) {
       if (!publicClient || !addresses || !willId) return null;
 
       try {
-        const will = await publicClient.readContract({
-          address: addresses.baseWill as `0x${string}`,
-          abi: baseWillAbi,
-          functionName: 'getWill',
-          args: [BigInt(willId)],
-        }) as WillData;
-
-        // Get additional data
-        const [value, beneficiaries] = await Promise.all([
+        const [willRaw, totalValue, beneficiaries] = await Promise.all([
           publicClient.readContract({
             address: addresses.baseWill as `0x${string}`,
             abi: baseWillAbi,
-            functionName: 'getWillValue',
+            functionName: 'wills',
+            args: [BigInt(willId)],
+          }),
+          publicClient.readContract({
+            address: addresses.baseWill as `0x${string}`,
+            abi: baseWillAbi,
+            functionName: 'getWillTotalValue',
             args: [BigInt(willId)],
           }),
           publicClient.readContract({
@@ -256,9 +200,20 @@ export function useWill(willId: string | undefined) {
           }),
         ]);
 
+        const [testator, status, inactivityThreshold, lastActivityTime, gracePeriod, triggeredAt, totalValueRaw, requiredNotaries, verificationCount] = willRaw as readonly [string, number, bigint, bigint, bigint, bigint, bigint, bigint, bigint];
+
         return {
-          ...will,
-          ethBalance: formatEther((value as [bigint, bigint[], bigint])[0]),
+          id: BigInt(willId),
+          testator: testator as `0x${string}`,
+          status,
+          inactivityThreshold,
+          lastActivityTime,
+          gracePeriod,
+          triggeredAt,
+          totalValue: totalValueRaw,
+          requiredNotaries,
+          verificationCount,
+          ethBalance: formatEther(totalValue as bigint),
           beneficiaryCount: (beneficiaries as unknown[]).length,
         };
       } catch (error) {
@@ -291,18 +246,17 @@ export function useTestatorWills(testator: `0x${string}` | undefined) {
 
         const wills = await Promise.all(
           willIds.map(async (id) => {
-            const will = await publicClient.readContract({
-              address: addresses.baseWill as `0x${string}`,
-              abi: baseWillAbi,
-              functionName: 'getWill',
-              args: [id],
-            }) as WillData;
-
-            const [value, beneficiaries] = await Promise.all([
+            const [willRaw, totalValue, beneficiaries] = await Promise.all([
               publicClient.readContract({
                 address: addresses.baseWill as `0x${string}`,
                 abi: baseWillAbi,
-                functionName: 'getWillValue',
+                functionName: 'wills',
+                args: [id],
+              }),
+              publicClient.readContract({
+                address: addresses.baseWill as `0x${string}`,
+                abi: baseWillAbi,
+                functionName: 'getWillTotalValue',
                 args: [id],
               }),
               publicClient.readContract({
@@ -313,9 +267,20 @@ export function useTestatorWills(testator: `0x${string}` | undefined) {
               }),
             ]);
 
+            const [testatorAddr, status, inactivityThreshold, lastActivityTime, gracePeriod, triggeredAt, totalValueRaw, requiredNotaries, verificationCount] = willRaw as readonly [string, number, bigint, bigint, bigint, bigint, bigint, bigint, bigint];
+
             return {
-              ...will,
-              ethBalance: formatEther((value as [bigint, bigint[], bigint])[0]),
+              id,
+              testator: testatorAddr as `0x${string}`,
+              status,
+              inactivityThreshold,
+              lastActivityTime,
+              gracePeriod,
+              triggeredAt,
+              totalValue: totalValueRaw,
+              requiredNotaries,
+              verificationCount,
+              ethBalance: formatEther(totalValue as bigint),
               beneficiaryCount: (beneficiaries as unknown[]).length,
             };
           })
@@ -331,7 +296,7 @@ export function useTestatorWills(testator: `0x${string}` | undefined) {
   });
 }
 
-// Hook to get platform statistics
+// Hook to get platform statistics (derived from contract state)
 export function usePlatformStats() {
   const { chain } = useAccount();
   const publicClient = usePublicClient();
@@ -343,13 +308,20 @@ export function usePlatformStats() {
       if (!publicClient || !addresses) return null;
 
       try {
-        const stats = await publicClient.readContract({
+        const totalWillsCreated = await publicClient.readContract({
           address: addresses.baseWill as `0x${string}`,
           abi: baseWillAbi,
-          functionName: 'getPlatformStats',
-        }) as PlatformStats;
+          functionName: 'willCounter',
+        }) as bigint;
 
-        return stats;
+        return {
+          totalValueSecured: 0n,
+          totalWillsCreated,
+          activeWills: 0n,
+          executedWills: 0n,
+          totalDistributed: 0n,
+          registeredNotaries: 0n,
+        };
       } catch (error) {
         console.error('Error fetching platform stats:', error);
         return null;
@@ -384,14 +356,7 @@ export function useCreateWill() {
         address: addresses.baseWill as `0x${string}`,
         abi: baseWillAbi,
         functionName: 'createWill',
-        args: [
-          params.activationMode,
-          params.inactivityThreshold,
-          params.gracePeriod,
-          params.disputePeriod,
-          params.metadataHash,
-          params.backupExecutor,
-        ],
+        args: [params.inactivityThreshold, params.gracePeriod],
       });
 
       const receipt = await publicClient.waitForTransactionReceipt({ hash });

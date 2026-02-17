@@ -20,7 +20,7 @@ const config: HardhatUserConfig = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 50,  // Balance size and gas
+        runs: 1,  // Optimize for size (was 50)
       },
       viaIR: true,  // Required for complex contracts
     },

@@ -5,11 +5,9 @@ interface WillData {
   id: bigint | string;
   testator: string;
   status: number;
-  activationMode: number;
   inactivityThreshold: bigint | string;
   gracePeriod: bigint | string;
-  createdAt: bigint | string;
-  lastActivity: bigint | string;
+  lastActivityTime: bigint | string;
   ethBalance?: string;
   beneficiaryCount?: number;
 }
@@ -29,13 +27,11 @@ const STATUS_COLORS = {
   6: 'badge-danger', // Revoked
 };
 
-const ACTIVATION_MODES = ['Time-Based', 'Notary Verified', 'Hybrid'];
-
 function WillCard({ will }: WillCardProps) {
   const willId = typeof will.id === 'bigint' ? will.id.toString() : will.id;
-  const lastActivity = new Date(Number(will.lastActivity) * 1000);
+  const lastActivity = new Date(Number(will.lastActivityTime) * 1000);
   const inactivityThreshold = Number(will.inactivityThreshold);
-  const createdAt = new Date(Number(will.createdAt) * 1000);
+  const createdAt = lastActivity;
 
   // Calculate days until trigger
   const triggerDate = new Date(lastActivity.getTime() + inactivityThreshold * 1000);
@@ -101,9 +97,7 @@ function WillCard({ will }: WillCardProps) {
               <span className="text-gray-400">
                 {daysUntilTrigger > 0 ? `${daysUntilTrigger} days until trigger` : 'Ready to trigger'}
               </span>
-              <span className="text-gray-400">
-                {ACTIVATION_MODES[will.activationMode]}
-              </span>
+              <span className="text-gray-400">Time-Based</span>
             </div>
           </div>
         )}
